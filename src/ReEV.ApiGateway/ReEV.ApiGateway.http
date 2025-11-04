@@ -1,0 +1,6 @@
+@ReEV.ApiGateway_HostAddress = http://localhost:5027
+
+GET {{ReEV.ApiGateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

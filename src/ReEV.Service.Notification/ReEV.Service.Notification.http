@@ -1,0 +1,6 @@
+@ReEV.Service.Notification_HostAddress = http://localhost:5124
+
+GET {{ReEV.Service.Notification_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

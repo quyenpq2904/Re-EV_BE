@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.ApiGateway", "ReEV.ApiGateway\ReEV.ApiGateway.csproj", "{52FCBB5A-F1F7-4622-94FC-0B39D51AAE6B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.Service.Auth", "ReEV.Service.Auth\ReEV.Service.Auth.csproj", "{07A0E0AE-E200-4085-B1A3-00222D5F3757}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.Service.Marketplace", "ReEV.Service.Marketplace\ReEV.Service.Marketplace.csproj", "{FF91D696-D207-4B10-82B3-70D102116BEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.Service.Transaction", "ReEV.Service.Transaction\ReEV.Service.Transaction.csproj", "{105C00A8-6165-40C2-B53C-86AC84A27E8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.Service.Notification", "ReEV.Service.Notification\ReEV.Service.Notification.csproj", "{C78980C9-398D-45E8-932C-0BB36DEED0FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReEV.Common", "ReEV.Common\ReEV.Common.csproj", "{E2322C5D-BF45-4E46-BB84-76683ECCAB34}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52FCBB5A-F1F7-4622-94FC-0B39D51AAE6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52FCBB5A-F1F7-4622-94FC-0B39D51AAE6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52FCBB5A-F1F7-4622-94FC-0B39D51AAE6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52FCBB5A-F1F7-4622-94FC-0B39D51AAE6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07A0E0AE-E200-4085-B1A3-00222D5F3757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07A0E0AE-E200-4085-B1A3-00222D5F3757}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07A0E0AE-E200-4085-B1A3-00222D5F3757}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07A0E0AE-E200-4085-B1A3-00222D5F3757}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF91D696-D207-4B10-82B3-70D102116BEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF91D696-D207-4B10-82B3-70D102116BEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF91D696-D207-4B10-82B3-70D102116BEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF91D696-D207-4B10-82B3-70D102116BEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{105C00A8-6165-40C2-B53C-86AC84A27E8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{105C00A8-6165-40C2-B53C-86AC84A27E8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{105C00A8-6165-40C2-B53C-86AC84A27E8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{105C00A8-6165-40C2-B53C-86AC84A27E8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C78980C9-398D-45E8-932C-0BB36DEED0FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C78980C9-398D-45E8-932C-0BB36DEED0FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C78980C9-398D-45E8-932C-0BB36DEED0FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C78980C9-398D-45E8-932C-0BB36DEED0FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2322C5D-BF45-4E46-BB84-76683ECCAB34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2322C5D-BF45-4E46-BB84-76683ECCAB34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2322C5D-BF45-4E46-BB84-76683ECCAB34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2322C5D-BF45-4E46-BB84-76683ECCAB34}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7117B9D0-BE11-4D51-84FD-E1B346CDFB92}
+	EndGlobalSection
+EndGlobal

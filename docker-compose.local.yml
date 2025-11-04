@@ -1,0 +1,83 @@
+version: "3.8"
+
+services:
+  authservice:
+    container_name: authservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Auth/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  marketplaceservice:
+    container_name: marketplaceservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Marketplace/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5002
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  transactionservice:
+    container_name: transactionservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Transaction/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5003
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  apigateway:
+    container_name: apigateway
+    build:
+      context: ./src
+      dockerfile: ReEV.ApiGateway/Dockerfile
+    ports:
+      - "5000:8080"
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ./src/ReEV.ApiGateway/ocelot.json:/app/ocelot.json
+    depends_on:
+      - authservice
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # Port AMQP (cho code)
+      - "15672:15672" # Port Management UI
+    networks:
+      - rev_network
+    environment:
+      # User/pass mặc định: guest/guest (chỉ dùng cho dev)
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+networks:
+  rev_network:
+    driver: bridge

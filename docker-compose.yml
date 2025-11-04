@@ -1,0 +1,137 @@
+services:
+  apigateway:
+    container_name: apigateway
+    build:
+      context: ./src
+      dockerfile: ReEV.ApiGateway/Dockerfile
+    ports:
+      - "5000:8080"
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+      - Logging__LogLevel__Microsoft.Routing=Information
+      - Logging__LogLevel__Yarp=Debug
+
+      - AllowedHosts=*
+
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Secret=${JWT_SECRET}
+
+      - ReverseProxy__Routes__auth-route__ClusterId=auth_svc
+      - ReverseProxy__Routes__auth-route__Match__Path=/api/auth/{**catch-all}
+      - ReverseProxy__Routes__auth-route__Match__Methods__0=POST
+
+      - ReverseProxy__Routes__users-route__ClusterId=auth_svc
+      - ReverseProxy__Routes__users-route__AuthorizationPolicy=RequireUser
+      - ReverseProxy__Routes__users-route__Match__Path=/api/users/{**catch-all}
+      - ReverseProxy__Routes__users-route__Match__Methods__0=GET
+      - ReverseProxy__Routes__users-route__Match__Methods__1=POST
+      - ReverseProxy__Routes__users-route__Match__Methods__2=PUT
+      - ReverseProxy__Routes__users-route__Match__Methods__3=DELETE
+
+      - ReverseProxy__Routes__listings-route__ClusterId=listings_svc
+      - ReverseProxy__Routes__listings-route__AuthorizationPolicy=RequireUser
+      - ReverseProxy__Routes__listings-route__Match__Path=/api/listings/{**catch-all}
+      - ReverseProxy__Routes__listings-route__Match__Methods__0=GET
+      - ReverseProxy__Routes__listings-route__Match__Methods__1=POST
+      - ReverseProxy__Routes__listings-route__Match__Methods__2=PUT
+      - ReverseProxy__Routes__listings-route__Match__Methods__3=DELETE
+
+      - ReverseProxy__Clusters__auth_svc__Destinations__destination__Address=http://authservice:5001
+      - ReverseProxy__Clusters__listings_svc__Destinations__destination__Address=http://marketplaceservice:5002
+    depends_on:
+      - authservice
+      - marketplaceservice
+      - transactionservice
+
+  authservice:
+    container_name: authservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Auth/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${AUTH_CONNECTION_STRING}
+      - AutoMapper__LicenseKey=${AUTOMAPPER_LICENSE_KEY}
+      - RabbitMQ__HostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQ__UserName=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=/
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__AccessTokenExpiryMinutes=${JWT_ACCESSTOKENEXPIRYMINUTES}
+      - Jwt__RefreshTokenExpiryDays=${JWT_REFRESHTOKENEXPIRYDAYS}
+      - ASPNETCORE_URLS=http://+:5001
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  marketplaceservice:
+    container_name: marketplaceservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Marketplace/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${MARKETPLACE_CONNECTION_STRING}
+      - AutoMapper__LicenseKey=${AUTOMAPPER_LICENSE_KEY}
+      - RabbitMQ__HostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQ__UserName=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=/
+      - ASPNETCORE_URLS=http://+:5002
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  transactionservice:
+    container_name: transactionservice
+    build:
+      context: ./src
+      dockerfile: ReEV.Service.Transaction/Dockerfile
+    networks:
+      - rev_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${TRANSACTION_CONNECTION_STRING}
+      - AutoMapper__LicenseKey=${AUTOMAPPER_LICENSE_KEY}
+      - RabbitMQ__HostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQ__UserName=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=/
+      - ASPNETCORE_URLS=http://+:5003
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672" # Port AMQP (cho code)
+      - "15672:15672" # Port Management UI
+    networks:
+      - rev_network
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+networks:
+  rev_network:
+    driver: bridge

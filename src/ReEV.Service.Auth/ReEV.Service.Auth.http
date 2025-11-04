@@ -1,0 +1,6 @@
+@ReEV.Service.Auth_HostAddress = http://localhost:5240
+
+GET {{ReEV.Service.Auth_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

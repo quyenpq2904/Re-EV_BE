@@ -1,0 +1,43 @@
+name: Build and Deploy on Self-Hosted Runner
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Create .env file
+        run: |
+          echo "AUTH_CONNECTION_STRING=${{ secrets.AUTH_CONNECTION_STRING }}" >> .env
+          echo "MARKETPLACE_CONNECTION_STRING=${{ secrets.MARKETPLACE_CONNECTION_STRING }}" >> .env
+          echo "TRANSACTION_CONNECTION_STRING=${{ secrets.TRANSACTION_CONNECTION_STRING }}" >> .env
+          echo "AUTOMAPPER_LICENSE_KEY=${{ secrets.AUTOMAPPER_LICENSE_KEY }}" >> .env
+          echo "RABBITMQ_HOSTNAME=${{ secrets.RABBITMQ_HOSTNAME }}" >> .env
+          echo "RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }}" >> .env
+          echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> .env
+          echo "JWT_ISSUER=${{ secrets.JWT_ISSUER }}" >> .env
+          echo "JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_ACCESSTOKENEXPIRYMINUTES=${{ secrets.JWT_ACCESSTOKENEXPIRYMINUTES }}" >> .env
+          echo "JWT_REFRESHTOKENEXPIRYDAYS=${{ secrets.JWT_REFRESHTOKENEXPIRYDAYS }}" >> .env
+
+      - name: Build and run Docker Compose
+        run: |
+          docker compose up -d --build --remove-orphans
+
+      - name: Remove .env file
+        if: always()
+        run: |
+          rm .env
+          echo ".env file removed for security."

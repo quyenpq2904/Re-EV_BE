@@ -1,0 +1,6 @@
+@ReEV.Service.Transaction_HostAddress = http://localhost:5217
+
+GET {{ReEV.Service.Transaction_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
