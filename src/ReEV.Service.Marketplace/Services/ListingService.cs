@@ -235,25 +235,44 @@ namespace ReEV.Service.Marketplace.Services
             }
 
             // Xử lý ảnh nếu có
-            string[]? imageUrls = null;
             if (dto.Images != null && dto.Images.Length > 0)
             {
-                imageUrls = await ProcessImagesAsync(dto.Images);
+                var imageUrls = await ProcessImagesAsync(dto.Images);
+                existingListing.Images = imageUrls;
             }
-            else
+            // Nếu không có ảnh mới, giữ nguyên ảnh cũ
+
+            // Chỉ cập nhật các thuộc tính có giá trị (partial update)
+            if (!string.IsNullOrWhiteSpace(dto.Title))
             {
-                // Giữ nguyên ảnh cũ nếu không có ảnh mới
-                imageUrls = existingListing.Images;
+                existingListing.Title = dto.Title;
             }
 
-            // Cập nhật các thuộc tính
-            existingListing.Title = dto.Title;
-            existingListing.Description = dto.Description;
-            existingListing.Price = dto.Price;
-            existingListing.Images = imageUrls;
-            existingListing.BatteryPercentage = dto.BatteryPercentage;
-            existingListing.YearOfManufacture = dto.YearOfManufacture;
-            existingListing.Condition = dto.Condition;
+            if (!string.IsNullOrWhiteSpace(dto.Description))
+            {
+                existingListing.Description = dto.Description;
+            }
+
+            if (dto.Price.HasValue && dto.Price.Value > 0)
+            {
+                existingListing.Price = dto.Price.Value;
+            }
+
+            if (dto.BatteryPercentage.HasValue)
+            {
+                existingListing.BatteryPercentage = dto.BatteryPercentage.Value;
+            }
+
+            if (dto.YearOfManufacture.HasValue)
+            {
+                existingListing.YearOfManufacture = dto.YearOfManufacture.Value;
+            }
+
+            if (dto.Condition.HasValue)
+            {
+                existingListing.Condition = dto.Condition.Value;
+            }
+
             existingListing.UpdatedAtUtc = DateTimeOffset.UtcNow;
 
             var updatedListing = await _listingRepository.UpdateAsync(listingId, existingListing);
