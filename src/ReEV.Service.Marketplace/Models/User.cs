@@ -4,6 +4,8 @@
     {
         public string FullName { get; set; }
         public string? AvatarUrl { get; set; }
+        public float Balance { get; set; } = 0;
+        public float LockedBalance { get; set; } = 0;
         public UserStatus Status { get; set; }
         public ICollection<Listing> Listings { get; set; } = new List<Listing>();
         public ICollection<Bid> Bids { get; set; } = new List<Bid>();

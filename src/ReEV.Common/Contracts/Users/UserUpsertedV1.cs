@@ -5,6 +5,8 @@
         string Email,
         string? FullName,
         string? PhoneNumber,
-        string? AvatarUrl
+        string? AvatarUrl,
+        float Balance = 0,
+        float LockedBalance = 0
     );
 }

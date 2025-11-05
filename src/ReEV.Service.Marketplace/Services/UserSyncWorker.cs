@@ -59,14 +59,25 @@ namespace ReEV.Service.Marketplace.Services
                         db.Users.Add(new User
                         {
                             Id = evt.UserId,
-                            FullName = evt.FullName,
-                            AvatarUrl = evt.AvatarUrl ?? "" // Sử dụng empty string thay vì null để tránh lỗi DB constraint
+                            FullName = evt.FullName ?? "",
+                            AvatarUrl = evt.AvatarUrl ?? "",
+                            Balance = evt.Balance,
+                            LockedBalance = evt.LockedBalance
                         });
                     }
                     else
                     {
-                        user.FullName = evt.FullName;
-                        user.AvatarUrl = evt.AvatarUrl ?? ""; // Sử dụng empty string thay vì null
+                        if (!string.IsNullOrWhiteSpace(evt.FullName))
+                        {
+                            user.FullName = evt.FullName;
+                        }
+                        if (evt.AvatarUrl != null)
+                        {
+                            user.AvatarUrl = evt.AvatarUrl;
+                        }
+                        // Luôn sync Balance và LockedBalance từ AuthService
+                        user.Balance = evt.Balance;
+                        user.LockedBalance = evt.LockedBalance;
                     }
 
                     await db.SaveChangesAsync();

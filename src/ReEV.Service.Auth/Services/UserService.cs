@@ -80,7 +80,9 @@ namespace ReEV.Service.Auth.Services
                     updatedUser.Email, 
                     updatedUser.FullName, 
                     updatedUser.PhoneNumber, 
-                    updatedUser.AvatarUrl
+                    updatedUser.AvatarUrl,
+                    updatedUser.Balance,
+                    updatedUser.LockedBalance
                 );
                 
                 await _publisher.PublishUserUpsertedAsync(userEvent);
@@ -110,7 +112,9 @@ namespace ReEV.Service.Auth.Services
                     newUser.Email, 
                     newUser.FullName, 
                     newUser.PhoneNumber, 
-                    newUser.AvatarUrl
+                    newUser.AvatarUrl,
+                    newUser.Balance,
+                    newUser.LockedBalance
                 );
                 
                 await _publisher.PublishUserUpsertedAsync(userEvent);
