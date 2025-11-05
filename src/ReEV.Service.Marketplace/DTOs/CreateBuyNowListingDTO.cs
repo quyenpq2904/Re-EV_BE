@@ -1,14 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
-using ReEV.Common.Enums;
 
 namespace ReEV.Service.Marketplace.DTOs
 {
-    public class CreateListingDTO
+    public class CreateBuyNowListingDTO
     {
-        [Required]
-        public ListingType ListingType { get; set; } // 0 = BUYNOW, 1 = AUCTION
-
         [Required]
         public string Title { get; set; } = null!;
 
@@ -38,14 +34,6 @@ namespace ReEV.Service.Marketplace.DTOs
 
         [Required]
         public Condition Condition { get; set; }
-
-        // Các fields cho AUCTION listing (required khi ListingType = AUCTION)
-        [Range(0.01, double.MaxValue)]
-        public float? BiddingIncrements { get; set; }
-
-        public DateTimeOffset? AuctionStartTime { get; set; }
-
-        public DateTimeOffset? AuctionEndTime { get; set; }
     }
 }
 

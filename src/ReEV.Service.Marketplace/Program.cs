@@ -4,7 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ReEV.Service.Marketplace.Mappings;
 using ReEV.Service.Marketplace.Repositories;
+using ReEV.Service.Marketplace.Repositories.Interfaces;
 using ReEV.Service.Marketplace.Services;
+using ReEV.Service.Marketplace.Services.Interfaces;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +29,10 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+        // Map claims từ JWT vào User.Identity
+        NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
+        RoleClaimType = System.Security.Claims.ClaimTypes.Role
     };
 });
 builder.Services.AddAuthorization();
@@ -66,6 +71,11 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddScoped<IListingRepository, ListingRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IListingService, ListingService>();
+builder.Services.AddSingleton<RabbitMQPublisher>();
 
 builder.Services.AddHostedService<UserSyncWorker>();
 

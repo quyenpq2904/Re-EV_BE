@@ -5,6 +5,6 @@ namespace ReEV.Service.Marketplace.Repositories.Interfaces
 {
     public interface IListingRepository : IRepository<Listing>
     {
-
+        Task<Listing?> VerifyListingAsync(Guid id, bool isVerified);
     }
 }

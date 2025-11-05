@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using ReEV.Common.Enums;
 
 namespace ReEV.Service.Auth.Services
 {
@@ -99,6 +100,7 @@ namespace ReEV.Service.Auth.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
             };
 
             var jwtSettings = _configuration.GetSection("Jwt");
