@@ -2,6 +2,7 @@ using RabbitMQ.Client;
 using System.Text.Json;
 using System.Text;
 using ReEV.Common.Contracts.Listings;
+using ReEV.Common.Contracts.Users;
 
 namespace ReEV.Service.Marketplace.Services
 {
@@ -60,6 +61,27 @@ namespace ReEV.Service.Marketplace.Services
             await _channel.BasicPublishAsync(
                 exchange: exchange,
                 routingKey: "listing.updated.v1",
+                mandatory: false,
+                basicProperties: props,
+                body: body
+            );
+        }
+
+        public async Task PublishUserBalanceUpdatedAsync(UserBalanceUpdatedV1 evt)
+        {
+            const string exchange = "user.events";
+            await _channel.ExchangeDeclareAsync(exchange, ExchangeType.Topic, durable: true);
+
+            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(evt));
+
+            var props = new BasicProperties
+            {
+                DeliveryMode = DeliveryModes.Persistent
+            };
+
+            await _channel.BasicPublishAsync(
+                exchange: exchange,
+                routingKey: "user.balance.updated.v1",
                 mandatory: false,
                 basicProperties: props,
                 body: body

@@ -57,8 +57,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IListingRepository, ListingRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
+builder.Services.AddScoped<IBidRepository, BidRepository>();
 builder.Services.AddScoped<IListingService, ListingService>();
 builder.Services.AddScoped<IFavouriteService, FavouriteService>();
+builder.Services.AddScoped<IBidService, BidService>();
 builder.Services.AddSingleton<RabbitMQPublisher>();
 
 builder.Services.AddHostedService<UserSyncWorker>();

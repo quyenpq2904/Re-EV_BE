@@ -9,6 +9,7 @@ namespace ReEV.Service.Marketplace.Mappings
         public ListingProfile()
         {
             CreateMap<Listing, ListingDTO>();
+            CreateMap<Bid, BidDTO>();
         }
     }
 }

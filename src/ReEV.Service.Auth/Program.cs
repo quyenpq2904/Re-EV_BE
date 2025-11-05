@@ -23,6 +23,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<RabbitMQPublisher>();
+builder.Services.AddHostedService<BalanceSyncWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
