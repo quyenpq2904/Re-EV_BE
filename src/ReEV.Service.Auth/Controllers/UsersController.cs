@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReEV.Service.Auth.DTOs;
+using ReEV.Service.Auth.Exceptions;
 using ReEV.Service.Auth.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -45,41 +46,48 @@ namespace ReEV.Service.Auth.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateUserById([FromRoute] Guid id, [FromBody] UserUpdateDTO userUpdateDto)
         {
-            // Lấy user ID từ claims
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            try
             {
-                return Unauthorized(new { 
-                    message = "Invalid token: User ID claim not found"
-                });
-            }
+                // Lấy user ID từ claims
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+                    ?? User.FindFirst("sub")?.Value 
+                    ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (!Guid.TryParse(userIdClaim, out Guid currentUserId))
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new { 
+                        message = "Invalid token: User ID claim not found"
+                    });
+                }
+
+                if (!Guid.TryParse(userIdClaim, out Guid currentUserId))
+                {
+                    return Unauthorized(new { 
+                        message = "Invalid token: User ID is not a valid GUID"
+                    });
+                }
+
+                // Lấy role từ claims
+                var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value 
+                    ?? User.FindFirst("role")?.Value;
+
+                // Kiểm tra: chỉ owner hoặc admin mới được update
+                if (currentUserId != id && (string.IsNullOrEmpty(roleClaim) || roleClaim != "ADMIN"))
+                {
+                    return Forbid("Only the account owner or ADMIN can update this user.");
+                }
+
+                var updatedUser = await _service.UpdateUser(id, userUpdateDto);
+                if (updatedUser == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+                return Ok(updatedUser);
+            }
+            catch (ValidationException ex)
             {
-                return Unauthorized(new { 
-                    message = "Invalid token: User ID is not a valid GUID"
-                });
+                return BadRequest(new { errors = ex.Errors });
             }
-
-            // Lấy role từ claims
-            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value 
-                ?? User.FindFirst("role")?.Value;
-
-            // Kiểm tra: chỉ owner hoặc admin mới được update
-            if (currentUserId != id && (string.IsNullOrEmpty(roleClaim) || roleClaim != "ADMIN"))
-            {
-                return Forbid("Only the account owner or ADMIN can update this user.");
-            }
-
-            var updatedUser = await _service.UpdateUser(id, userUpdateDto);
-            if (updatedUser == null)
-            {
-                return NotFound(new { message = "User not found" });
-            }
-            return Ok(updatedUser);
         }
     }
 }

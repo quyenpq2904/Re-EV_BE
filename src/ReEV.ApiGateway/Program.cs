@@ -18,8 +18,15 @@ builder.Services.Configure<ForwardedHeadersOptions>(opts =>
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("AllowWebApp", p => p
-        .WithOrigins("https://rev.quyenpq.work")
-        .AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+        .WithOrigins(
+            "http://localhost:3000",
+            "https://localhost:3000",
+            "http://rev.quyenpq.work",
+            "https://rev.quyenpq.work"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 var jwtSection = builder.Configuration.GetSection("Jwt");

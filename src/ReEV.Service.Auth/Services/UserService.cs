@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ReEV.Common.Contracts.Users;
 using ReEV.Service.Auth.DTOs;
+using ReEV.Service.Auth.Exceptions;
 using ReEV.Service.Auth.Models;
 using ReEV.Service.Auth.Repositories.Interfaces;
 using ReEV.Service.Auth.Services.Interfaces;
@@ -48,6 +49,20 @@ namespace ReEV.Service.Auth.Services
 
         public async Task<UserDTO?> UpdateUser(Guid id, UserUpdateDTO userUpdateDto)
         {
+            var errors = new Dictionary<string, string>();
+
+            // Kiểm tra phone number đã tồn tại chưa (nhưng không phải của user hiện tại)
+            var existingUserByPhone = await _repository.GetByPhoneNumberAsync(userUpdateDto.PhoneNumber);
+            if (existingUserByPhone != null && existingUserByPhone.Id != id)
+            {
+                errors["phone_number"] = "Phone number already exists.";
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new ValidationException(errors);
+            }
+
             var userEntity = _mapper.Map<User>(userUpdateDto);
 
             var updatedUser = await _repository.UpdateAsync(id, userEntity);
