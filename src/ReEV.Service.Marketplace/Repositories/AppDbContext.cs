@@ -20,6 +20,9 @@ namespace ReEV.Service.Marketplace.Repositories
 
             modelBuilder.Entity<User>(entity =>
             {
+                // AvatarUrl có thể NULL (giống Auth service)
+                entity.Property(u => u.AvatarUrl).IsRequired(false);
+
                 entity.HasMany(u => u.ReviewsGiven)
                       .WithOne(r => r.Reviewer)
                       .HasForeignKey(r => r.ReviewerId)

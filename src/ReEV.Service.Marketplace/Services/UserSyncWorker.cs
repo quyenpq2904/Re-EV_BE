@@ -60,13 +60,13 @@ namespace ReEV.Service.Marketplace.Services
                         {
                             Id = evt.UserId,
                             FullName = evt.FullName,
-                            AvatarUrl = evt.AvatarUrl
+                            AvatarUrl = evt.AvatarUrl ?? "" // Sử dụng empty string thay vì null để tránh lỗi DB constraint
                         });
                     }
                     else
                     {
                         user.FullName = evt.FullName;
-                        user.AvatarUrl = evt.AvatarUrl;
+                        user.AvatarUrl = evt.AvatarUrl ?? ""; // Sử dụng empty string thay vì null
                     }
 
                     await db.SaveChangesAsync();
