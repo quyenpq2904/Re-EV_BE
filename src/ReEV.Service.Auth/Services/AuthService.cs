@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ReEV.Service.Auth.DTOs;
+using ReEV.Service.Auth.Exceptions;
 using ReEV.Service.Auth.Helpers;
 using ReEV.Service.Auth.Repositories.Interfaces;
 using ReEV.Service.Auth.Services.Interfaces;
@@ -30,11 +31,25 @@ namespace ReEV.Service.Auth.Services
 
         public async Task<UserDTO> Register(UserCreateDTO registerDto)
         {
-            var existingUser = await _userRepository.GetByEmailOrPhoneAsync(registerDto.PhoneNumber);
-            if (existingUser != null)
+            var errors = new Dictionary<string, string>();
+
+            var existingUserByEmail = await _userRepository.GetByEmailAsync(registerDto.Email);
+            if (existingUserByEmail != null)
             {
-                throw new BadHttpRequestException("Email or Phone number already exists.");
+                errors["email"] = "Email already exists.";
             }
+
+            var existingUserByPhone = await _userRepository.GetByPhoneNumberAsync(registerDto.PhoneNumber);
+            if (existingUserByPhone != null)
+            {
+                errors["phone_number"] = "Phone number already exists.";
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new ValidationException(errors);
+            }
+
             string hashedPassword = PasswordHelper.HashPassword(registerDto.Password);
             registerDto.Password = hashedPassword;
             var newUserDto = await _userService.CreateUser(registerDto);

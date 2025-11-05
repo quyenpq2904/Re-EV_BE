@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ReEV.Service.Auth.DTOs;
+using ReEV.Service.Auth.Exceptions;
 using ReEV.Service.Auth.Services.Interfaces;
 
 namespace ReEV.Service.Auth.Controllers
@@ -27,6 +28,10 @@ namespace ReEV.Service.Auth.Controllers
                     "Users",
                     new { id = newUser.Id },
                     newUser);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { errors = ex.Errors });
             }
             catch (BadHttpRequestException ex)
             {

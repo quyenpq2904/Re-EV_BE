@@ -86,5 +86,17 @@ namespace ReEV.Service.Auth.Repositories
             return await _appDbContext.Users
                 .FirstOrDefaultAsync(x => x.Email == identifier || x.PhoneNumber == identifier);
         }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            return await _appDbContext.Users
+                .FirstOrDefaultAsync(x => x.Email == email);
+        }
+
+        public async Task<User?> GetByPhoneNumberAsync(string phoneNumber)
+        {
+            return await _appDbContext.Users
+                .FirstOrDefaultAsync(x => x.PhoneNumber == phoneNumber);
+        }
     }
 }
