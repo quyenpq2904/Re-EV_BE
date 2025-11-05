@@ -51,6 +51,14 @@ services:
       - ReverseProxy__Routes__bids-route__Match__Methods__2=PUT
       - ReverseProxy__Routes__bids-route__Match__Methods__3=DELETE
 
+      - ReverseProxy__Routes__favourites-route__ClusterId=listings_svc
+      - ReverseProxy__Routes__favourites-route__AuthorizationPolicy=RequireUser
+      - ReverseProxy__Routes__favourites-route__Match__Path=/api/favourites/{**catch-all}
+      - ReverseProxy__Routes__favourites-route__Match__Methods__0=GET
+      - ReverseProxy__Routes__favourites-route__Match__Methods__1=POST
+      - ReverseProxy__Routes__favourites-route__Match__Methods__2=PUT
+      - ReverseProxy__Routes__favourites-route__Match__Methods__3=DELETE
+
       - ReverseProxy__Clusters__auth_svc__Destinations__destination__Address=http://authservice:5001
       - ReverseProxy__Clusters__listings_svc__Destinations__destination__Address=http://marketplaceservice:5002
     depends_on:
