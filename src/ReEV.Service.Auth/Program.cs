@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ReEV.Service.Auth.Services.Interfaces;
+using ReEV.Service.Auth.Helpers;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,11 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<RabbitMQPublisher>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = new SnakeCaseNamingPolicy();
+    });
 
 builder.Services.AddAuthentication(options =>
 {
@@ -39,8 +45,35 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+        // Map claims từ JWT vào User.Identity
+        NameClaimType = ClaimTypes.NameIdentifier,
+        RoleClaimType = ClaimTypes.Role
+    };
 
+    // Thêm event handler để debug
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(context.Exception, "Authentication failed");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            var userId = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+            logger.LogInformation("Token validated successfully. User ID: {UserId}", userId);
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning("Challenge triggered. Error: {Error}, ErrorDescription: {ErrorDescription}", 
+                context.Error, context.ErrorDescription);
+            return Task.CompletedTask;
+        }
     };
 });
 builder.Services.AddAuthorization();

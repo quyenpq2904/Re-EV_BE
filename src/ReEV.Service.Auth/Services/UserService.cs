@@ -12,12 +12,14 @@ namespace ReEV.Service.Auth.Services
         private readonly IUserRepository _repository;
         private readonly IMapper _mapper;
         private readonly RabbitMQPublisher _publisher;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository repository, IMapper mapper, RabbitMQPublisher publisher)
+        public UserService(IUserRepository repository, IMapper mapper, RabbitMQPublisher publisher, ILogger<UserService> logger)
         {
             _repository = repository;
             _mapper = mapper;
             _publisher = publisher;
+            _logger = logger;
         }
 
         public async Task<PaginationResult<UserDTO>> GetUsers(int page = 1, int pageSize = 10, string search = "")
@@ -54,7 +56,28 @@ namespace ReEV.Service.Auth.Services
             {
                 return null;
             }
-            await _publisher.PublishUserUpsertedAsync(new UserUpsertedV1(updatedUser.Id, updatedUser.Email, updatedUser.FullName, updatedUser.PhoneNumber, updatedUser.AvatarUrl));
+
+            // Đảm bảo event luôn được publish khi update thành công
+            try
+            {
+                var userEvent = new UserUpsertedV1(
+                    updatedUser.Id, 
+                    updatedUser.Email, 
+                    updatedUser.FullName, 
+                    updatedUser.PhoneNumber, 
+                    updatedUser.AvatarUrl
+                );
+                
+                await _publisher.PublishUserUpsertedAsync(userEvent);
+                _logger.LogInformation("User update event published successfully. UserId: {UserId}", updatedUser.Id);
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nhưng không throw để không làm fail request
+                // Event sẽ được retry hoặc xử lý sau
+                _logger.LogError(ex, "Failed to publish user update event. UserId: {UserId}", updatedUser.Id);
+            }
+
             return _mapper.Map<UserDTO>(updatedUser);
         }
 
@@ -63,7 +86,27 @@ namespace ReEV.Service.Auth.Services
             var userEntity = _mapper.Map<User>(userCreateDto);
 
             var newUser = await _repository.CreateAsync(userEntity);
-            await _publisher.PublishUserUpsertedAsync(new UserUpsertedV1(newUser.Id, newUser.Email, newUser.FullName, newUser.PhoneNumber, newUser.AvatarUrl));
+            
+            // Đảm bảo event luôn được publish khi create thành công
+            try
+            {
+                var userEvent = new UserUpsertedV1(
+                    newUser.Id, 
+                    newUser.Email, 
+                    newUser.FullName, 
+                    newUser.PhoneNumber, 
+                    newUser.AvatarUrl
+                );
+                
+                await _publisher.PublishUserUpsertedAsync(userEvent);
+                _logger.LogInformation("User create event published successfully. UserId: {UserId}", newUser.Id);
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nhưng không throw để không làm fail request
+                // Event sẽ được retry hoặc xử lý sau
+                _logger.LogError(ex, "Failed to publish user create event. UserId: {UserId}", newUser.Id);
+            }
 
             return _mapper.Map<UserDTO>(newUser);
         }
