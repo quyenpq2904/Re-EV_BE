@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReEV.Service.Marketplace.DTOs;
+using ReEV.Service.Marketplace.Helpers;
 using ReEV.Service.Marketplace.Services.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace ReEV.Service.Marketplace.Controllers
 {
@@ -24,26 +23,16 @@ namespace ReEV.Service.Marketplace.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int page_size = 10)
         {
-            // Lấy user ID từ claims
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
+            var userId = UserHelper.GetUserId(User);
+            if (userId == null)
             {
                 return Unauthorized(new { 
-                    message = "Invalid token: User ID claim not found"
+                    message = "User ID not found in request headers"
                 });
             }
 
-            if (!Guid.TryParse(userIdClaim, out Guid userId))
-            {
-                return Unauthorized(new { 
-                    message = "Invalid token: User ID is not a valid GUID"
-                });
-            }
-
-            var response = await _favouriteService.GetFavouritesAsync(userId, page, page_size);
+            var response = await _favouriteService.GetFavouritesAsync(userId.Value, page, page_size);
             return Ok(response);
         }
 
@@ -53,22 +42,12 @@ namespace ReEV.Service.Marketplace.Controllers
             [FromQuery] string? listing_id = null,
             [FromQuery] string? favourite_id = null)
         {
-            // Lấy user ID từ claims
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
+            var userId = UserHelper.GetUserId(User);
+            if (userId == null)
             {
                 return Unauthorized(new { 
-                    message = "Invalid token: User ID claim not found"
-                });
-            }
-
-            if (!Guid.TryParse(userIdClaim, out Guid userId))
-            {
-                return Unauthorized(new { 
-                    message = "Invalid token: User ID is not a valid GUID"
+                    message = "User ID not found in request headers"
                 });
             }
 
@@ -109,7 +88,7 @@ namespace ReEV.Service.Marketplace.Controllers
 
             try
             {
-                await _favouriteService.DeleteFavouriteAsync(userId, listingIdGuid, favouriteIdGuid);
+                await _favouriteService.DeleteFavouriteAsync(userId.Value, listingIdGuid, favouriteIdGuid);
                 return Ok(new { 
                     message = "Favourite deleted successfully" 
                 });
@@ -136,22 +115,12 @@ namespace ReEV.Service.Marketplace.Controllers
         [Authorize]
         public async Task<IActionResult> AddFavourite([FromBody] AddFavouriteRequestDTO dto)
         {
-            // Lấy user ID từ claims
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
+            // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
+            var userId = UserHelper.GetUserId(User);
+            if (userId == null)
             {
                 return Unauthorized(new { 
-                    message = "Invalid token: User ID claim not found"
-                });
-            }
-
-            if (!Guid.TryParse(userIdClaim, out Guid userId))
-            {
-                return Unauthorized(new { 
-                    message = "Invalid token: User ID is not a valid GUID"
+                    message = "User ID not found in request headers"
                 });
             }
 
@@ -165,7 +134,7 @@ namespace ReEV.Service.Marketplace.Controllers
 
             try
             {
-                await _favouriteService.AddFavouriteAsync(userId, listingId);
+                await _favouriteService.AddFavouriteAsync(userId.Value, listingId);
                 return Ok(new { 
                     message = "Listing added to favourites successfully" 
                 });

@@ -56,9 +56,21 @@ namespace ReEV.Service.Auth.Repositories
             {
                 return null;
             }
-            existingUser.PhoneNumber = entity.PhoneNumber;
-            existingUser.AvatarUrl = entity.AvatarUrl;
-            existingUser.FullName = entity.FullName;
+            
+            if (!string.IsNullOrEmpty(entity.PhoneNumber))
+            {
+                existingUser.PhoneNumber = entity.PhoneNumber;
+            }
+            
+            if (!string.IsNullOrEmpty(entity.AvatarUrl))
+            {
+                existingUser.AvatarUrl = entity.AvatarUrl;
+            }
+            
+            if (!string.IsNullOrEmpty(entity.FullName))
+            {
+                existingUser.FullName = entity.FullName;
+            }
 
             if (!string.IsNullOrEmpty(entity.Password))
             {

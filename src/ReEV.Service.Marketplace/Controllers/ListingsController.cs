@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReEV.Service.Marketplace.DTOs;
+using ReEV.Service.Marketplace.Helpers;
 using ReEV.Service.Marketplace.Services.Interfaces;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System;
 
 namespace ReEV.Service.Marketplace.Controllers
 {
@@ -23,18 +21,16 @@ namespace ReEV.Service.Marketplace.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateListing([FromForm] CreateListingDTO dto)
         {
-            var sellerIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(sellerIdClaim) || !Guid.TryParse(sellerIdClaim, out var sellerId))
+            // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
+            var sellerId = UserHelper.GetUserId(User);
+            if (sellerId == null)
             {
-                return Unauthorized(new { message = "Invalid token" });
+                return Unauthorized(new { message = "User ID not found in request headers" });
             }
 
             try
             {
-                var listing = await _listingService.CreateListingAsync(sellerId, dto);
+                var listing = await _listingService.CreateListingAsync(sellerId.Value, dto);
                 return CreatedAtAction(nameof(GetListingById), new { id = listing.Id }, listing);
             }
             catch (ArgumentException ex)
@@ -77,18 +73,16 @@ namespace ReEV.Service.Marketplace.Controllers
             [FromRoute] Guid id,
             [FromForm] UpdateListingDTO dto)
         {
-            var sellerIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
-                ?? User.FindFirst("sub")?.Value 
-                ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(sellerIdClaim) || !Guid.TryParse(sellerIdClaim, out var sellerId))
+            // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
+            var sellerId = UserHelper.GetUserId(User);
+            if (sellerId == null)
             {
-                return Unauthorized(new { message = "Invalid token" });
+                return Unauthorized(new { message = "User ID not found in request headers" });
             }
 
             try
             {
-                var updatedListing = await _listingService.UpdateListingAsync(id, sellerId, dto);
+                var updatedListing = await _listingService.UpdateListingAsync(id, sellerId.Value, dto);
                 if (updatedListing == null)
                 {
                     return NotFound(new { message = "Listing not found" });
@@ -106,11 +100,8 @@ namespace ReEV.Service.Marketplace.Controllers
         [Authorize]
         public async Task<IActionResult> VerifyListing([FromRoute] Guid id)
         {
-            // Kiểm tra role ADMIN từ token claims
-            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value 
-                ?? User.FindFirst("role")?.Value;
-            
-            if (string.IsNullOrEmpty(roleClaim) || roleClaim != "ADMIN")
+            // Kiểm tra role ADMIN từ claims (được populate từ Gateway headers X-User-Role)
+            if (!UserHelper.IsAdmin(User))
             {
                 return Forbid("Only ADMIN users can verify listings.");
             }
@@ -135,11 +126,8 @@ namespace ReEV.Service.Marketplace.Controllers
         [Authorize]
         public async Task<IActionResult> UnverifyListing([FromRoute] Guid id)
         {
-            // Kiểm tra role ADMIN từ token claims
-            var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value 
-                ?? User.FindFirst("role")?.Value;
-            
-            if (string.IsNullOrEmpty(roleClaim) || roleClaim != "ADMIN")
+            // Kiểm tra role ADMIN từ claims (được populate từ Gateway headers X-User-Role)
+            if (!UserHelper.IsAdmin(User))
             {
                 return Forbid("Only ADMIN users can unverify listings.");
             }

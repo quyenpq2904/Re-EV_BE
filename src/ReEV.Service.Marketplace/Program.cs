@@ -1,40 +1,22 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ReEV.Service.Marketplace.Mappings;
+using ReEV.Service.Marketplace.Middleware;
 using ReEV.Service.Marketplace.Repositories;
 using ReEV.Service.Marketplace.Repositories.Interfaces;
 using ReEV.Service.Marketplace.Services;
 using ReEV.Service.Marketplace.Services.Interfaces;
-using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer("Bearer", options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
-        // Map claims từ JWT vào User.Identity
-        NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier,
-        RoleClaimType = System.Security.Claims.ClaimTypes.Role
-    };
-});
+// Không cần JWT authentication ở service level vì Gateway đã validate và forward user info qua headers
+// Service sẽ trust Gateway và đọc user info từ custom headers (X-User-Id, X-User-Email, X-User-Role)
+builder.Services.AddAuthentication("GatewayAuth")
+    .AddScheme<AuthenticationSchemeOptions, GatewayAuthHandler>("GatewayAuth", null);
 builder.Services.AddAuthorization();
 builder.Services.AddAutoMapper(config => config.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"], typeof(ListingProfile));
 builder.Services.AddControllers();
