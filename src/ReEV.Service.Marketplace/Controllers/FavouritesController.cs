@@ -38,9 +38,7 @@ namespace ReEV.Service.Marketplace.Controllers
 
         [HttpDelete]
         [Authorize]
-        public async Task<IActionResult> DeleteFavourite(
-            [FromQuery] string? listing_id = null,
-            [FromQuery] string? favourite_id = null)
+        public async Task<IActionResult> DeleteFavourite([FromQuery] string listing_id)
         {
             // Lấy user ID từ claims (được populate từ Gateway headers X-User-Id)
             var userId = UserHelper.GetUserId(User);
@@ -51,44 +49,25 @@ namespace ReEV.Service.Marketplace.Controllers
                 });
             }
 
-            // Kiểm tra ít nhất một trong hai param phải có
-            if (string.IsNullOrEmpty(listing_id) && string.IsNullOrEmpty(favourite_id))
+            // Kiểm tra listing_id có được cung cấp không
+            if (string.IsNullOrEmpty(listing_id))
             {
                 return BadRequest(new { 
-                    message = "Either listing_id or favourite_id must be provided."
+                    message = "listing_id is required."
                 });
             }
 
-            Guid? listingIdGuid = null;
-            Guid? favouriteIdGuid = null;
-
-            // Parse listing_id nếu có
-            if (!string.IsNullOrEmpty(listing_id))
+            // Parse listing_id
+            if (!Guid.TryParse(listing_id, out Guid listingIdGuid))
             {
-                if (!Guid.TryParse(listing_id, out Guid parsedListingId))
-                {
-                    return BadRequest(new { 
-                        message = "Invalid listing_id format. Must be a valid GUID."
-                    });
-                }
-                listingIdGuid = parsedListingId;
-            }
-
-            // Parse favourite_id nếu có
-            if (!string.IsNullOrEmpty(favourite_id))
-            {
-                if (!Guid.TryParse(favourite_id, out Guid parsedFavouriteId))
-                {
-                    return BadRequest(new { 
-                        message = "Invalid favourite_id format. Must be a valid GUID."
-                    });
-                }
-                favouriteIdGuid = parsedFavouriteId;
+                return BadRequest(new { 
+                    message = "Invalid listing_id format. Must be a valid GUID."
+                });
             }
 
             try
             {
-                await _favouriteService.DeleteFavouriteAsync(userId.Value, listingIdGuid, favouriteIdGuid);
+                await _favouriteService.DeleteFavouriteAsync(userId.Value, listingIdGuid);
                 return Ok(new { 
                     message = "Favourite deleted successfully" 
                 });

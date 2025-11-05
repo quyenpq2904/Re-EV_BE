@@ -54,8 +54,9 @@ namespace ReEV.Service.Marketplace.Services
                 image = uf.Listing?.Images != null && uf.Listing.Images.Length > 0 
                     ? uf.Listing.Images[0] 
                     : null,
-                Name = uf.Listing?.Title ?? string.Empty,
-                listingId = uf.Listing?.Id ?? Guid.Empty
+                name = uf.Listing?.Title ?? string.Empty,
+                description = uf.Listing?.Description ?? string.Empty,
+                listing_id = uf.Listing?.Id ?? Guid.Empty
             }).ToList();
 
             return new PaginationResult<FavouriteListingDTO>
@@ -68,36 +69,13 @@ namespace ReEV.Service.Marketplace.Services
             };
         }
 
-        public async Task<bool> DeleteFavouriteAsync(Guid userId, Guid? listingId = null, Guid? favouriteId = null)
+        public async Task<bool> DeleteFavouriteAsync(Guid userId, Guid listingId)
         {
-            UserFavorite? favorite = null;
-
-            // Nếu có listing_id, tìm theo userId + listingId
-            if (listingId.HasValue)
+            // Tìm favourite theo userId + listingId
+            var favorite = await _userFavoriteRepository.GetByUserIdAndListingIdAsync(userId, listingId);
+            if (favorite == null)
             {
-                favorite = await _userFavoriteRepository.GetByUserIdAndListingIdAsync(userId, listingId.Value);
-                if (favorite == null)
-                {
-                    throw new KeyNotFoundException($"Favourite with user_id {userId} and listing_id {listingId.Value} not found.");
-                }
-            }
-            // Nếu có favourite_id, tìm theo favouriteId và kiểm tra userId
-            else if (favouriteId.HasValue)
-            {
-                favorite = await _userFavoriteRepository.GetByIdAsync(favouriteId.Value);
-                if (favorite == null)
-                {
-                    throw new KeyNotFoundException($"Favourite with id {favouriteId.Value} not found.");
-                }
-                // Kiểm tra userId có khớp không
-                if (favorite.UserId != userId)
-                {
-                    throw new UnauthorizedAccessException($"User {userId} is not authorized to delete this favourite.");
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Either listing_id or favourite_id must be provided.");
+                throw new KeyNotFoundException($"Favourite with user_id {userId} and listing_id {listingId} not found.");
             }
 
             // Xóa favourite
